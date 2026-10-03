@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Piliblox - Free Robux</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #121212; color: #fff; text-align: center; padding: 20px; }
+    .card { background: #1e1e1e; padding: 20px; border-radius: 12px; margin: 15px auto; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+    input, button { width: 90%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; font-size: 16px; }
+    input { background: #2a2a2a; color: #fff; border: 1px solid #444; }
+    button { background: #00e676; color: #000; font-weight: bold; cursor: pointer; }
+    button:disabled { background: #555; color: #888; cursor: not-allowed; }
+    .avatar-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid #00e676; margin-top: 10px; }
+    .points { font-size: 24px; color: #ffd700; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h1>Piliblox</h1>
+  <p>Earn points to get Free Robux!</p>
+
+  <!-- User Setup -->
+  <div class="card">
+    <h3>Enter Roblox Username</h3>
+    <input type="text" id="usernameInput" placeholder="Type username..." />
+    <button onclick="fetchAvatar()">Find Avatar</button>
+    <div id="avatarContainer"></div>
+  </div>
+
+  <!-- Points & Balance -->
+  <div class="card">
+    <h3>Your Balance</h3>
+    <p class="points"><span id="userPoints">0</span> Points</p>
+  </div>
+
+  <!-- Missions -->
+  <div class="card">
+    <h3>Missions</h3>
+    
+    <!-- Ad Watch -->
+    <button id="adBtn" onclick="watchAd()">Watch 15s Ad (+20 Points)</button>
+    <p id="adTimer" style="color: #ff9800;"></p>
+
+    <hr style="border-color: #333; margin: 15px 0;">
+
+    <!-- Quiz Mission -->
+    <p><strong>Quiz:</strong> What year was Roblox created?</p>
+    <input type="text" id="quizAnswer" placeholder="Enter year..." />
+    <button onclick="checkQuiz()">Submit Quiz (+30 Points)</button>
+  </div>
+
+  <!-- Redeem Section -->
+  <div class="card">
+    <h3>Redeem Robux</h3>
+    <button onclick="redeem(100, 10)">100 Points -> 10 Robux</button>
+    <button onclick="redeem(1000, 455)">1000 Points -> 455 Robux</button>
+  </div>
+
+  <script>
+    let points = 0;
+
+    // 1. Automatically fetch Roblox Avatar
+    async function fetchAvatar() {
+      const username = document.getElementById('usernameInput').value.trim();
+      const container = document.getElementById('avatarContainer');
+      
+      if (!username) return;
+
+      container.innerHTML = "<p>Searching...</p>";
+
+      try {
+        // Fetch User ID via proxy
+        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://users.roblox.com/v1/usernames/users')}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'json' },
+          body: JSON.stringify({ usernames: [username] })
+        });
+        
+        const data = JSON.parse((await res.json()).contents);
+        if (data.data && data.data.length > 0) {
+          const userId = data.data[0].id;
+          const avatarUrl = `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=true`;
+          
+          const thumbRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(avatarUrl)}`);
+          const thumbData = JSON.parse((await thumbRes.json()).contents);
+          
+          const imgUrl = thumbData.data[0].imageUrl;
+          container.innerHTML = `<img src="${imgUrl}" class="avatar-img" alt="${username}"><p><strong>${username}</strong></p>`;
+        } else {
+          container.innerHTML = "<p style='color:red;'>User not found!</p>";
+        }
+      } catch (err) {
+        container.innerHTML = "<p style='color:red;'>Error fetching avatar.</p>";
+      }
+    }
+
+    // 2. Watch 15-second Ad Mission
+    function watchAd() {
+      const btn = document.getElementById('adBtn');
+      const timerDisplay = document.getElementById('adTimer');
+      let timeLeft = 15;
+
+      btn.disabled = true;
+      timerDisplay.innerText = `Watching Ad... ${timeLeft}s remaining`;
+
+      const countdown = setInterval(() => {
+        timeLeft--;
+        timerDisplay.innerText = `Watching Ad... ${timeLeft}s remaining`;
+
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          timerDisplay.innerText = "Ad Finished!";
+          addPoints(20);
+          btn.disabled = false;
+        }
+      }, 1000);
+    }
+
+    // 3. Quiz Mission
+    function checkQuiz() {
+      const ans = document.getElementById('quizAnswer').value.trim();
+      if (ans === "2006") {
+        alert("Correct! You earned 30 points.");
+        addPoints(30);
+      } else {
+        alert("Wrong answer! Try again.");
+      }
+    }
+
+    // Add Points helper
+    function addPoints(amount) {
+      points += amount;
+      document.getElementById('userPoints').innerText = points;
+    }
+
+    // 4. Redeem Robux
+    function redeem(requiredPoints, robuxAmount) {
+      if (points >= requiredPoints) {
+        points -= requiredPoints;
+        document.getElementById('userPoints').innerText = points;
+        alert(`Success! You redeemed ${robuxAmount} Robux!`);
+      } else {
+        alert(`You need at least ${requiredPoints} points to redeem ${robuxAmount} Robux.`);
+      }
+    }
+  </script>
+</body>
+  </html>
+  
